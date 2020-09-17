@@ -1,261 +1,132 @@
 import React, { Component } from 'react';
+import { Box, Card, CardContent, CardActions, CardHeader, Typography } from '@material-ui/core';
+import PostMedia from '../../common/post/PostMedia';
+import PostCaption from '../../common/post/PostCaption';
+import PostLikes from '../../common/post/PostLikes';
+import PostComments from '../../common/post/PostComments';
+import PageWithHeader from '../../common/header/PageWithHeader';
+import Search from '../../common/search/Search';
+import ProfileIcon from '../../common/profile/ProfileIcon';
 import './Home.css';
-import { withStyles } from '@material-ui/core/styles';
-import Header from '../../common/header/Header';
-import Input from '@material-ui/core/Input';
-import Card from '@material-ui/core/Card';
-import CardHeader from '@material-ui/core/CardHeader';
-import CardMedia from '@material-ui/core/CardMedia';
-import CardContent from '@material-ui/core/CardContent';
-import IconButton from '@material-ui/core/IconButton';
-import Typography from '@material-ui/core/Typography';
-import FavoriteBorderIcon from '@material-ui/icons/FavoriteBorder';
-import Moment from 'react-moment';
-import { Button } from '@material-ui/core';
-import FormControl from '@material-ui/core/FormControl';
-import InputLabel from '@material-ui/core/InputLabel';
-import FavoriteIcon from '@material-ui/icons/Favorite';
+import { postsDetails } from '../../common/Test';
+import Config from '../../common/config';
 
-
-
-
-
-const styles = theme => ({
-    root: {
-        maxWidth: 500,
-      },
-      media: {
-        height: 0,
-        paddingTop: '56.25%', // 16:9
-      },
-      expand: {
-        transform: 'rotate(0deg)',
-        marginLeft: 'auto',
-        transition: theme.transitions.create('transform', {
-          duration: theme.transitions.duration.shortest,
-        }),
-      },
-      expandOpen: {
-        transform: 'rotate(180deg)',
-      },
-     
-});
-class Home extends Component{
-  
-    constructor(){
+export default class Home extends Component {
+    constructor() {
         super();
         this.state = {
-            posts : [],
-            profile_picture : null,
-            comments:[],
-            comment:null,
-            search:"",
-            isLiked:false,
-            likedByUser:[],
-            commentForPost:[]
-           
-            
-           
+            searchPattern: "",
+            posts: [],
+            userPosts: []
         }
-       
-    }
-    componentDidMount() {
-        
-        // Get profile picture
-        let data = null;
-        let xhr = new XMLHttpRequest();
-        let that = this;
-        
-       if(this.props.loggedIn ===  "true"){
-        xhr.addEventListener("readystatechange", function () {
-            if (this.readyState === 4) {
-                that.setState({
-                    profile_picture : JSON.parse(this.responseText).data.profile_picture
+        this.logoutUser = this.logoutUser.bind(this);
+        this.redirectUserToAccountsPage = this.redirectUserToAccountsPage.bind(this);
+        this.filterPost = this.filterPost.bind(this);
 
-                });
-            }
+    }
+
+    // Handler method to filter posts on change in Search Text
+    filterPost = (e) => {
+        this.setState({
+            searchPattern: e.target.value, userPosts: this.state.posts.filter(
+                (post) => post.caption.includes(e.target.value)
+            )
         });
-   
-        xhr.open("GET", this.props.baseUrl+"?access_token="+sessionStorage.getItem("access-token"));
-        xhr.setRequestHeader("Cache-Control", "no-cache");
-        xhr.send(data);
-      
-         // Get posts 
-         let postData = null;
-         let xhrPosts = new XMLHttpRequest();
-         
-         
-        
-         xhrPosts.addEventListener("readystatechange", function () {
-             if (this.readyState === 4) {
-                 that.setState({
-                    posts :JSON.parse(this.responseText).data
-                  
-                 });
-             }
-         });
-         xhrPosts.open("GET", this.props.baseUrl+"/media/recent?access_token="+sessionStorage.getItem("access-token"));
-         xhrPosts.setRequestHeader("Cache-Control", "no-cache");
-         xhrPosts.send(postData);
-      
-        }
-        }  
-
-    loadPost=(index)=>{
-        this.state.likedByUser[index]=false;
-        this.forceUpdate();
-      }  
-      
-      increaseLikesHandler = (id,index) => {
-        
-         
-         this.state.likedByUser[index]=true;
-         this.forceUpdate();
-         this.state.posts.map(post=>{
-             if(post.id===id){
-                 let n = post.likes.count + 1;
-                 post.likes.count = n;
-             }
-         })
-         
-      }
-     
-      commentHandler = (event,index) =>{
-          this.setState({comment : event.target.value});
-          this.state.commentForPost[index]=event.target.value;
-          this.forceUpdate();
-      }
-      addCommentHandler =(index) =>{
-        if(this.state.comment!==null && this.state.comment !== "")  {
-                if(this.state.comments[index] === undefined)
-                    this.state.comments[index] = this.state.comment;
-                else   this.state.comments[index] = this.state.comments[index]+":"+ this.state.comment; 
-                this.forceUpdate();
-                
-                this.setState({comment:''});
-                this.state.commentForPost[index]="";
-                this.forceUpdate();
-               
-            }
-        }
-
-    searchHandler=(e)=>{
-        e.preventDefault();
-        this.setState({search :  e.target.value});
-        }
-    
-     
-    render(){
-        const { classes } = this.props;
-        let relevantPosts = this.state.posts;
-       
-        if(this.state.search !== undefined){
-          
-            relevantPosts = this.state.posts.filter( post =>{
-            let postInLower = post.caption.text.toLowerCase();
-            return postInLower.indexOf( this.state.search.toLowerCase() ) !== -1
-        }) }
-        
-        return(
-            <div>
-                
-                <Header loggedIn='true' showSearchTab="true" baseUrl={this.props.baseUrl} 
-                searchHandler={this.searchHandler}/>
-                <div className="posts-flex-container">
-                 
-                 
-                  {relevantPosts.map((post,index) => (
-                  
-                        
-                        <div className="posts-card" key={post.id} onLoad={()=>this.loadPost(index)}>
-                            <Card className={classes.root} id={"post" + post.id}>
-                                <CardHeader
-                                    avatar={
-                                    <IconButton style={{padding :'0'}}>   
-                                        <img src={this.state.profile_picture} alt="profile-pic"
-                                        style={{width: 40, height: 40, borderRadius: 40, borderWidth: 'thick' ,borderColor:'black'} } />
-                                    </IconButton>
-                                    }
-                                  
-                                    title={post.user.username}
-                                 
-                                  subheader={ <Moment format="MM/DD/YYYY HH:mm:ss">
-                                    {post.user.created_time}
-                                   </Moment>
-                                  }
-
-                                   
-                                    
-                                />
-                                <div className="image-container">
-                                <CardMedia
-                                    className={classes.media}
-                                    image={post.images.standard_resolution.url}
-                                />
-                                </div>
-                                <hr/>
-                                <CardContent>
-                                    <Typography variant="body2" color="textPrimary" component="p">
-                                     {post.caption.text.split('\n')[0]}
-                                       
-                                    
-                                    </Typography>
-                                    <Typography className="tags" variant="body2" component="p">
-                                        {post.tags.map((tag,index)=>(
-                                          <span key={"tag"+post.id+index}> #{tag}</span>
-                                        ))
-
-                                        }
-                                    </Typography>
-                                   <br/>
-                                  <div className="like-section" >
-                                      <span onClick={() => this.increaseLikesHandler(post.id,index)}>
-                                   
-                                     
-                                    {this.state.likedByUser[index] ?
-                                    <FavoriteIcon className="fav"/>:<FavoriteBorderIcon />}
-                                      </span>       
-                                            <span style={{fontSize :20}}> {post.likes.count} likes </span> 
-                                            </div> 
-                                    <br/><br/>
-                                  
-                                    <div className="comment-container">
-                                    {this.state.comments[index] !== undefined && this.state.comments[index] !== null ?
-                                     this.state.comments[index].split(':').map(
-                                        comment=>( <div key={post.id}> 
-                                            <span style={{fontWeight:"bold"}}>{post.user.username} : </span>
-                                        <span>{comment}</span><br/>
-                                        </div>)
-                                    ) :""
-                                    }
-                                    
-                                    <br/><br/>
-                                    <FormControl >
-                                    <div className ="comment-section">
-                                    <InputLabel htmlFor={"comment" + post.id}>Add a comment</InputLabel>
-                                    <Input key={"comment" + post.id}  type="text"  value={this.state.commentForPost[index]}
-                                     comment={this.state.comment} onChange={(e)=>{this.commentHandler(e,index)}}  />
-                                    <Button variant="contained" color="primary" onClick={() => this.addCommentHandler(index)}>
-                                        ADD
-                                    </Button>
-                                    </div>
-                                    </FormControl>
-                              
-                                    </div>
-                                    
-                                </CardContent>    
-                              
-                            </Card>
-                        </div>
-                  
-                               
-                  ))}
-                  
-                </div>
-   
-           </div>
-        )
     }
-}
 
-export default withStyles(styles)(Home);
+    // Logout user when he clicks on the menu option Logout
+    logoutUser = () => {
+        sessionStorage.clear();
+        this.props.history.replace('/');
+    }
+
+    // Convert post date from ISODateTime to DD/MM/YYYY HH:MM:SS
+    covertDate = (x) => {
+        let date = new Date(x);
+        let dd = date.getDate();
+        let mm = date.getMonth() + 1;
+        dd = (dd < 10) ? ("0" + dd) : dd;
+        mm = (mm < 10) ? ("0" + mm) : mm;
+        return dd + '/' + mm + '/' + date.getFullYear()
+            + ' ' + date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds()
+    };
+
+    // Redirect user to his profile page when he clicks on My Account
+    redirectUserToAccountsPage = () => this.props.history.push('/profile');
+
+    // Get component profile avatar with Menu Options and associated Handlers
+    getProfileAvatar = () => {
+        return (
+            <Box ml="auto" display="flex" flexDirection="row" alignItems="center">
+                <Search onChange={this.filterPost} />
+                <ProfileIcon type="avatarWithMenu" menuOptions={['My Account', 'Logout']}
+                    handlers={[this.redirectUserToAccountsPage, this.logoutUser]} />
+            </Box>);
+    };
+
+    // Fetch user's post by making an API call
+    async componentDidMount() {
+        if (!Config.api.mock) {
+            let accessToken = window.sessionStorage.getItem("access-token");
+            let getPostsURI = Config.api.endpoints.find((endpoint) => endpoint.name === "Get Posts").uri.replace('$accessToken', accessToken);
+            let getPostDetailsURI = Config.api.endpoints.find((endpoint) => endpoint.name === "Get Post Details").uri.replace('$accessToken', accessToken);
+    
+            let response = await fetch(getPostsURI);
+            let posts = await response.json();
+            posts = posts.data;
+    
+            for (let i = 0; i < posts.length; i++) {
+                response = await fetch(getPostDetailsURI.replace('$postId', posts[i].id));
+                let details = await response.json();
+                posts[i].media_type = details.media_type;
+                posts[i].media_url = details.media_url;
+                posts[i].username = details.username;
+                posts[i].timestamp = details.timestamp;
+                posts[i].comments = [];
+                posts[i].isLiked = false;
+                posts[i].numLikes = Math.round(100 + Math.random() * 100);
+            }
+            this.setState({userPosts: posts});
+            this.setState({posts: posts.filter(x => true)});
+        }
+        else {
+            this.setState({userPosts: postsDetails});
+            this.setState({posts: postsDetails.filter(x => true)});
+        }
+        
+    }
+
+    render() {
+        return (
+            <PageWithHeader title="Image Viewer" positionLeft={this.getProfileAvatar}>
+                {
+                    (this.state.userPosts.length > 0) ?
+                        (
+                            <Box display="flex" width="90%" m="auto" flexDirection="row" flexWrap="wrap" alignItems="space-around" justifyContent="space-between">
+                                {
+                                    this.state.userPosts.map(userPost => (
+                                        <Card key={userPost.id + "post"} raised className="post">
+                                            <CardHeader className="post-header" disableTypography
+                                                avatar={<ProfileIcon type="avatarOnly" />}
+                                                title={<Typography className="text-bold" variant="body1">{userPost.username}</Typography>}
+                                                subheader={<Typography className="text-lite" variant="subtitle2">{this.covertDate(userPost.timestamp)}</Typography>}>
+                                            </CardHeader>
+                                            <CardContent className="post-content">
+                                                <PostMedia media={userPost.media_url} mediaId={userPost.id} />
+                                                <PostCaption text={userPost.caption} />
+                                            </CardContent>
+                                            <CardActions className="post-footer">
+                                                <Box width="100%" display="flex" flexDirection="column" alignItems="left">
+                                                    <PostLikes likes={userPost.numLikes} />
+                                                    <PostComments baseId={userPost.id} postUser={userPost.username} />
+                                                </Box>
+                                            </CardActions>
+                                        </Card>
+                                    ))
+                                }
+                            </Box>) : ""}
+            </PageWithHeader>
+        );
+    }
+
+}

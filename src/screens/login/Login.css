@@ -1,17 +1,13 @@
-
-.card-content{
-    padding: 50px;
-    width: 300;
+.login-card {
+    width: 30%;
+    margin: auto;
+    padding: 2%;
 }
 
-.dispNone {
+.hide {
     display: none;
 }
 
-.dispBlock {
+.show {
     display: block;
-}
-
-.red {
-    color: red;
 }

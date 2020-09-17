@@ -1,40 +1,24 @@
-.posts-flex-container {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    align-items: center;
-    padding: 10px 100px;
-   
-    
-  }
-  
-  .posts-card {
-    display: flex;
-    flex-direction: column;
-    flex: 1 0 50%;
-    margin-bottom: 20px;
-    
-  }
-
-
-  .image-container{
-   padding: 10px;
-  }
-.fav{
- color: red;
+.post {
+    height: 45%;
+    width: 45%;
+    min-height: 400px;
+    min-width: 400px;
+    margin: 2%;
 }
 
-.tags{
-  color:blue;
+.post-content,
+.post-footer,
+.post-header {
+    margin: 2%;
+    padding: 2%;
 }
 
-  #commentInput{
-    width: 300px;
-  }
-  .comment-section{
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-around;
-  }
+.text-bold {
+    font-size: 1rem;
+    font-weight: 750;
+}
+
+.text-lite {
+    font-size: 0.8rem;
+    font-weight: 500;
+}

@@ -1,100 +1,70 @@
- import React, { Component } from 'react';
- import Header from '../../common/header/Header'
+import React, { Component } from 'react';
+import { Card, CardActions, CardContent, Typography, Button, FormControl, FormHelperText, Input, InputLabel } from '@material-ui/core';
+import PageWithHeader from '../../common/header/PageWithHeader';
+import Config from '../../common/config';
 import './Login.css';
-import Card from '@material-ui/core/Card';
-import CardContent from '@material-ui/core/CardContent';
-import Typography from '@material-ui/core/Typography';
-import FormControl from '@material-ui/core/FormControl';
-import InputLabel from '@material-ui/core/InputLabel';
-import Input from '@material-ui/core/Input';
-import FormHelperText from '@material-ui/core/FormHelperText';
-import Button from '@material-ui/core/Button';
 
-
-const useStyles ={
-    width: 400,
-    marginLeft: 600,
-    marginTop : 10
- };
-
-class Login extends Component{
-
-    constructor(){
+export default class Login extends Component {
+    constructor() {
         super();
-        this.state={
-            usernameRequired: "dispNone",
-            username: "",
-            loginPasswordRequired: "dispNone",
-            loginPassword: "",
-            loggedIn: sessionStorage.getItem("access-token") == null ? false : true,
-            incorrectUserNamePassword : "dispNone",
-           
+        this.state = {
+            usernameVal: "",
+            passwordVal: "",
+            usernameRequiredText: "hide",
+            passwordRequiredText: "hide",
+            incorrectLoginInfoText: "hide"
         }
+
+        /*****************************************************************************
+         * Username, Password, Access Token & Mocking can be setup or enabled in
+         *  ../../common/Config.js
+         *****************************************************************************/
     }
+
+    getUsernameOnChange = (e) => this.setState({ usernameVal: e.target.value, usernameRequiredText: "hide" });
+    getPasswordOnChange = (e) => this.setState({ passwordVal: e.target.value, passwordRequiredText: "hide" });
     
-
-    inputUsernameChangeHandler = (e) => {
-        this.setState({ username: e.target.value });
-    }
-    inputLoginPasswordChangeHandler = (e) => {
-        this.setState({ loginPassword: e.target.value });
-    }
-
-    loginClickHandler = () => {
-        this.setState({ incorrectUserNamePassword: "dispNone" });
-        this.state.username === "" ? this.setState({ usernameRequired: "dispBlock" }) : this.setState({ usernameRequired: "dispNone" });
-        this.state.loginPassword === "" ? this.setState({ loginPasswordRequired: "dispBlock" }) : 
-        this.setState({ loginPasswordRequired: "dispNone" });
-
-        if(this.state.username !== ""  && !this.state.loginPassword !== "" ){
-           /* if(this.state.username === "Upgrad" && this.state.loginPassword=="password"){*/
-                this.setState({loggedIn : "true"}) ;
-                sessionStorage.setItem("access-token","8661035776.d0fcd39.39f63ab2f88d4f9c92b0862729ee2784");
-                this.props.history.push({pathname : '/home', loggedIn : "true",showSearchTab :"true" ,baseUrl : this.props.baseUrl})
-                
-            /*    } else {
-                    this.setState({ incorrectUserNamePassword: "dispBlock" });
-                } */
-        }
+    //Verify Input Credentials & log the user in if the supplied credentials are OK
+    loginUserOnBtnClick = (e) => {
+        (!this.state.usernameVal) ? this.setState({ usernameRequiredText: "show" }) : this.setState({ usernameRequiredText: "hide" });
+        (!this.state.passwordVal) ? this.setState({ passwordRequiredText: "show" }) : this.setState({ passwordRequiredText: "hide" });
+        (this.state.usernameVal !== "" && this.state.passwordVal !== "" && (this.state.usernameVal !== Config.login.username || this.state.passwordVal !== Config.login.password)) ? this.setState({ incorrectLoginInfoText: "show" }) : this.redirectUserToHomePage();
     }
 
-   
-
-    render(){
-        return(
-            <div><Header  baseUrl={this.props.baseUrl}  />
-            <Card  style={useStyles}>
-            <CardContent className="card-content">
-                <Typography variant="h5" component="h2">
-                Login
-                </Typography>
-                <FormControl required>
-            <InputLabel htmlFor="username">Username</InputLabel>
-            <Input id="username" type="text" username={this.state.username} onChange={this.inputUsernameChangeHandler} />
-                <FormHelperText className={this.state.usernameRequired}>
-                    <span className="red">required</span>
-                </FormHelperText>
-                </FormControl>
-                <br /><br />
-                <FormControl required>
-                    <InputLabel htmlFor="loginPassword">Password</InputLabel>
-                    <Input id="loginPassword" type="password" loginpassword={this.state.loginPassword} onChange={this.inputLoginPasswordChangeHandler} />
-                    <FormHelperText className={this.state.loginPasswordRequired}>
-                        <span className="red">required</span>
-                    </FormHelperText>
-                </FormControl>
-                <br /><br />
-                <FormHelperText className={this.state.incorrectUserNamePassword}>
-                    <span className="red">Incorrect username and/or password</span>
-                </FormHelperText>
-        <br /><br />
-        <Button variant="contained" color="primary" onClick={this.loginClickHandler}>LOGIN</Button>
-                </CardContent>
-                 
-                        </Card>
-                        </div>                
-        )
+    // Redirect User to Home Page on Successful Login
+    redirectUserToHomePage = () => {
+        this.setState({ incorrectLoginInfoText: "hide" });
+        window.sessionStorage.setItem('access-token', Config.auth["access-token"]);
+        this.props.history.push('/home/');
+    }
+    render() {
+        return (
+            <PageWithHeader title="Image Viewer">
+                <Card className="login-card" >
+                    <CardContent>
+                        <FormControl margin="normal" size="medium" variant="standard">
+                            <Typography className="login-title" variant="h5" component="h5" color="textPrimary"
+                            >LOGIN</Typography>
+                        </FormControl>
+                        <FormControl fullWidth required margin="normal" size="medium" variant="standard">
+                            <InputLabel htmlFor="ip-uname">Username</InputLabel>
+                            <Input id="ip-uname" type="text" onChange={this.getUsernameOnChange} />
+                            <FormHelperText error className={this.state.usernameRequiredText}>required</FormHelperText>
+                        </FormControl>
+                        <FormControl fullWidth required margin="normal" size="medium" variant="standard">
+                            <InputLabel htmlFor="ip-passwd">Password</InputLabel>
+                            <Input id="ip-passwd" type="password" onChange={this.getPasswordOnChange} />
+                            <FormHelperText error className={this.state.passwordRequiredText}>required</FormHelperText>
+                        </FormControl>
+                        <FormHelperText error className={this.state.incorrectLoginInfoText}>Incorrect username and/or password</FormHelperText>
+                    </CardContent>
+                    <CardActions>
+                        <FormControl margin="normal" size="medium" variant="standard">
+                            <Button variant="contained" color="primary" id="btn-login" onClick={this.loginUserOnBtnClick}>LOGIN</Button>
+                        </FormControl>
+                    </CardActions>
+                </Card>
+            </PageWithHeader>
+        );
     }
 }
-
-export default Login;
